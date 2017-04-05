@@ -1,0 +1,24 @@
+{
+  "name": "web-components-codelab",
+  "authors": [
+    "bob.bijvoet@gmail.com"
+  ],
+  "description": "A codelab on Web Components v1",
+  "main": "index.html",
+  "keywords": [
+    "codelab"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "codelab-components": "googlecodelabs/codelab-components#^2.0.2"
+  }
+}

@@ -1,0 +1,251 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Pure Web Components</title>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <link rel="import" href="elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style>
+    body {
+      font-family: "Roboto",sans-serif;
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="Pure Web Components"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Setup" duration="5">
+          Setup an index.html file with a doctype, a element named my-element and add a script tag.  <pre><code language="html" class="html">&lt;!DOCTYPE html&gt;
+
+&lt;my-element&gt;&lt;/my-element&gt;
+
+&lt;script&gt;
+
+&lt;/script&gt;
+</code></pre>
+   <aside class="special">View the index.html file in Chrome since this browser has the best support for Web Components today.</aside>
+   
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Simple Element using HTMLElement" duration="15">
+          We start with a very simple Custom Element by extending <code>HTMLElement</code>. On the connected lifecycle hook (more on that in the next step) we replace the contents with some elements using <code>this.innerHTML</code>.  <pre><code language="js" class="js">
+//Inside the script tag
+class MyElement extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = &#34;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;I am a custom element&lt;/p&gt;&#34;;
+  }
+}
+</code></pre>
+   <aside class="warning">Always be careful using innerHTML when handling user input! There are chances of exposing XSS vulnerabilities!</aside>
+   Now we can define the Custom Element with the just created class.  <pre><code language="js" class="js">
+customElements.define(&#39;my-element&#39;, MyElement);
+
+</code></pre>
+  View the html file in your browser and see that the element renders.  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Using the lifecycle hooks" duration="15">
+          There are 4 important life-cycle hooks for Custom Elements  <h3>1. Constructor</h3>
+  <pre><code>constructor() {
+    // An instance of the element is created.
+    // Useful for initializing state, settings up event listeners, or creating shadow dom.
+    super(); // always call super() first in the ctor.
+}
+</code></pre>
+   <aside class="warning">Always call super(); first!</aside>
+   Set up some state for your component:  <code>this.name = &#39;Bob&#39;</code>  <h3>2. Connected</h3>
+  <pre><code>connectedCallback() {
+    // Called every time the element is inserted into the DOM.
+    // Useful for running setup code, such as fetching resources or rendering.
+}
+
+
+
+</code></pre>
+  Use the state and show it using a template literal:  <pre><code>
+this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.name}&lt;/p&gt;`;
+</code></pre>
+  <h3>3. Disconnected</h3>
+  <pre><code>disconnectedCallback() {
+    // Called every time the element is removed from the DOM.
+    // Useful for running clean up code (removing event listeners, etc.).
+}
+</code></pre>
+  Log a message when the element is removed. Remove it by typing <code>$(&#39;my-element&#39;).remove()</code> in your console.  <h3>4. Attribute changed</h3>
+  <pre><code>attributeChangedCallback(attrName, oldVal, newVal) {
+    // An attribute was added, removed, updated, or replaced.
+    // Also called for initial values when an element is created by the parser, or upgraded.
+}
+</code></pre>
+   <aside class="warning">Only attributes listed in the observedAttributes property will receive this callback.</aside>
+   We will cover attributes later.  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Using a template" duration="15">
+          <h3>Adding a template</h3>
+  Create a <code>&lt;template&gt;</code> element just above the <code>&lt;script&gt;</code> tag:  <pre><code>&lt;template&gt;
+    &lt;h1&gt;My template&lt;/h1&gt;
+    &lt;p id=&#34;greeting&#34;&gt;&lt;/p&gt;
+&lt;/template&gt;
+
+</code></pre>
+  We are going to use this template as the content for our Custom Element:  <ol start="1">
+<li>Give the template an id</li>
+<li>Select it using getElementById</li>
+<li>Clone the contents</li>
+<li>Set the content of the greeting paragraph to the template string</li>
+<li>Append it to your Custom Element</li>
+</ol>
+  <pre><code>connectedCallback() {
+    let template = document.getElementById(&#39;my-template&#39;);
+    let content = template.content.cloneNode(true); // Parameter is for deep cloning
+    content.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.name}`;
+    this.appendChild(content);
+}
+</code></pre>
+   <aside class="special">Using textContent is safer and faster because it will not parse any HTML tags.</aside>
+   
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Element with scoped styles" duration="15">
+          <h3>Add some styles</h3>
+  Create a <code>&lt;style&gt;</code> tag inside of the <code>&lt;template&gt;</code>. Add some style for the paragraph.  <pre><code language="css" class="css">
+    p {
+        color: red;
+    }
+
+
+</code></pre>
+  Add a paragraph next to your Custom Element and see that the styles are applied there as well.  <h3>Adding a shadow root</h3>
+  Instead of attaching the Template content directly as a child, we create a Shadow Root, and attach the template inside.  <pre><code>this.attachShadow({mode: &#39;open&#39;}); // Parameter is for deep cloning
+this.shadowRoot.appendChild(content);
+</code></pre>
+  Notice that only the paragraph in the shadow dom has the styles applied.  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Styling the Custom Element" duration="10">
+          <h3>Using :host</h3>
+  Web components can style themselves too, by using the :host selector.  <pre><code language="css" class="css">
+    :host {
+        display: block;
+        background: darkgray;
+    }
+
+</code></pre>
+   <aside class="special">By default, custom elements are display: inline.</aside>
+   <h3>The :host() function</h3>
+  You can also use :host to encapsulate behaviors or to style internal nodes based on the host  <pre><code language="css" class="css">    :host(:hover) {
+        background: lightgray;
+    }
+
+    :host(.blue) {
+        background: darkblue;
+        color: white;
+    }
+
+    :host(.blue) &gt; p {
+        color: green;
+    }
+</code></pre>
+   <aside class="warning">Be aware that outside styles win in terms of specificity, so users can override your top-level styles from outside.</aside>
+   
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Life cycle hooks part 2" duration="0">
+        <h3>Rules</h3>
+  Since we’re allowed to create shadow dom in the constructor we can move  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Slots" duration="0">
+        <h3>Placeholders</h3>
+  Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:  <pre><code>
+&lt;my-element&gt;
+    hello
+&lt;/my-element&gt;
+
+</code></pre>
+  Note that the text is not rendered. If we add a <code>&lt;slot&gt;</code> element to our <code>&lt;template&gt;</code> then we see the text get rendered.  <h3>Fallback</h3>
+  Put some text in the <code>&lt;slot&gt;</code>, notice that it’s overwritten. Now if we remove the Light DOM you’ll see the text of your slot is rendered.   <aside class="warning">For this fallback to work, make sure your Custom Element is completely empty.</aside>
+   <h3>Named slots</h3>
+  Add a name to your slot:  <pre><code>&lt;slot name=&#34;title&#34;&gt;&lt;/slot&gt;
+
+</code></pre>
+  Render an header in the slot:  <pre><code>&lt;my-element&gt;
+    &lt;h1 slot=&#34;title&#34;&gt;Slots rule!&lt;/h1&gt;
+&lt;/my-element&gt;
+</code></pre>
+  Create one more slot and play with the defaults.  <h3>Element with ::slotted styles</h3>
+  Use the <code>::slotted</code> selector to match nodes inside slots.  <pre><code language="css" class="css">::slotted(h1) {
+    margin: 0;
+    font-weight: 300;
+    color: red;
+}
+::slotted(.title) {
+    color: orange;
+}
+
+</code></pre>
+  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Variables on the Element" duration="0">
+        <pre><code>### Attributes
+### Properties
+### Passing variables up (eventing)
+</code></pre>
+    <pre><code>&lt;!--- Element cache--&gt;
+&lt;!-----&gt;
+</code></pre>
+ 
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>
