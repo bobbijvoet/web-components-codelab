@@ -446,9 +446,28 @@ Implement this pattern in your Custom Element. Tab through the page and see the 
 
 Often you want to notify the parent elements that stuff changed. First we create this parent:
 
-1. Create a new Custom Element named my-parent
-2. In the contstructor add a slot element
-3. Compose the HTML in the body so that my-element is rendered inside of my-parent
+1. Create a new class named MyParent which extends HTMLElement
+2. In the constructor add a slot element, as such:
+
+``` js
+class MyParent extends HTMLElement {
+        constructor() {
+            super();
+
+            this.attachShadow({mode: 'open'});
+            var slot = document.createElement('slot');
+            this.shadowRoot.appendChild(slot);
+        }
+    }
+```
+
+3. Define it using customElements.define 
+
+```
+    customElements.define('my-parent', MyParent);
+```
+
+4. Compose the HTML in the body so that my-element is rendered inside of my-parent
 
 ```
 <my-parent>
