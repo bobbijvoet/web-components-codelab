@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<p>testing</p>
+
+
+<my-parent>
+    <my-element name="testtest" id="my-element">
+        <h1 slot="title">Slots rule!</h1>
+    </my-element>
+</my-parent>
+
+<template id="my-template">
+    <style>
+
+        :host {
+            background: darkgray;
+            display: block;
+        }
+
+        :host(:hover) {
+            background: lightgray;
+        }
+
+        :host(.blue) {
+            background: darkblue;
+            color: white;
+        }
+        :host([disabled]) {
+            opacity: 0.2;
+        }
+        p {
+            color: red;
+        }
+
+        ::slotted(h1) {
+            margin: 0;
+            font-weight: 300;
+            color: red;
+        }
+        ::slotted(.title) {
+            color: orange;
+        }
+
+    </style>
+    <slot name="title">fallback</slot>
+    <h1>My template</h1>
+    <p id="greeting"></p>
+</template>
+
+<script>
+    class MyElement extends HTMLElement {
+
+        constructor() {
+            super();
+            let template = document.getElementById('my-template');
+            let content = template.content.cloneNode(true);
+            this.attachShadow({mode: 'open'});
+            this.shadowRoot.appendChild(content);
+
+            this.name = 'Bob';
+            this.clickCount = 5;
+
+            this.addEventListener('click', this.onClick);
+        }
+
+        onClick() {
+            this.clickCount++;
+            this.dispatchEvent(new CustomEvent('click-count-changed', {
+                detail: {count: this.clickCount}, bubbles: true, composed: true
+            }));
+
+        }
+
+        connectedCallback() {
+            this.name = this.getAttribute('name');
+        }
+
+        get name() {
+            return this._name;
+        }
+
+        set name(val) {
+            if (val === this._name) return;
+            if (val) {
+                this._name = val;
+                this.setAttribute('name', this._name);
+                this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this._name}`;
+            }
+        }
+
+        disconnectedCallback() {
+            console.log('disconnect');
+        }
+
+        attributeChangedCallback(attrName, oldVal, newVal) {
+            if (newVal != this[attrName]) {
+                this[attrName] = newVal;
+            }
+        }
+
+        static get observedAttributes() {
+            return ['disabled', 'name'];
+        }
+
+        get disabled() {
+            return this.hasAttribute('disabled');
+        }
+
+        set disabled(val) {
+            if (val) {
+                this.setAttribute('disabled', '');
+            } else {
+                this.removeAttribute('disabled');
+            }
+        }
+
+        attributeChangedCallback() {
+            // When disabled, update keyboard/screen reader behavior.
+            if (this.disabled) {
+                this.setAttribute('tabindex', '-1');
+                this.setAttribute('aria-disabled', 'true');
+            } else {
+                this.setAttribute('tabindex', '0');
+                this.setAttribute('aria-disabled', 'false');
+            }
+        }
+    }
+
+    class MyParent extends HTMLElement {
+        constructor() {
+            super();
+
+            this.attachShadow({mode: 'open'});
+            var slot = document.createElement('slot');
+            this.shadowRoot.appendChild(slot);
+
+            this.addEventListener('click-count-changed', this.clickCountUpdated);
+        }
+
+        clickCountUpdated (e){
+            console.log(e.detail.count);
+        }
+    }
+
+    customElements.define('my-element', MyElement);
+    customElements.define('my-parent', MyParent);
+</script>

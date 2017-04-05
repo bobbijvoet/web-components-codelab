@@ -306,6 +306,8 @@ Use the `::slotted` selector to match nodes inside slots.
 }
 
 ```
+Positive
+: Slotted elements retain the style they had from the scope where they are defined
 
 
 ## Attributes on the Element
@@ -357,6 +359,7 @@ set name(val) {
 Now, change the connectedCallback to: `this.name = this.getAttribute('name');`
 
 
+
 ### Observing changed attributes
 
 If you update your Custom Elements attribute 'name' via the console using `$('my-element').setAttribute('name', 'something');`, you will notice that the greeting won't get updated. We need to observe our attribute in order to update the greeting.
@@ -381,7 +384,9 @@ attributeChangedCallback(attrName, oldVal, newVal) {
 
 Run the previous setAttribute command from your console again and notice that the greeting updates.
 
-### Reflecting properties to attributes
+## Reflecting properties to attributes
+
+### Setting the attribute when properties change
 
 Often we want the properties of Custom Elements to be reflected in the attributes. If you run `$('my-element').name = 'something';` you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.
 
@@ -390,7 +395,7 @@ Often we want the properties of Custom Elements to be reflected in the attribute
 this.setAttribute('name', this._name);
 ```
 
-Inspect this common pattern:
+Inspect this common pattern in which the getters and setters reflect and modify the boolean attribute 'disabled':
 
 ``` js
 
@@ -410,9 +415,8 @@ set disabled(val) {
     }
 }
 
-// Only called for the disabled and open attributes due to observedAttributes
-attributeChangedCallback(name, oldValue, newValue) {
-    // When the drawer is disabled, update keyboard/screen reader behavior.
+attributeChangedCallback() {
+    // When disabled, update keyboard/screen reader behavior.
     if (this.disabled) {
         this.setAttribute('tabindex', '-1');
         this.setAttribute('aria-disabled', 'true');
@@ -424,10 +428,56 @@ attributeChangedCallback(name, oldValue, newValue) {
 
 ```
 
+Implement this pattern in your Custom Element. Tab through the page and see the difference the disabled attribute now makes.
+
+1. Add disabled styles
+
+``` css
+    :host([disabled]) {
+        opacity: 0.2;
+    }
+
+```
+
+
 ## Passing variables up (eventing)
 
+###  Creating a parent element
 
-<!--## Creating our Polymer clone-->
+Often you want to notify the parent elements that stuff changed. First we create this parent:
 
-    <!--- Element cache-->
-    <!----->
+1. Create a new Custom Element named my-parent
+2. In the contstructor add a slot element
+3. Compose the HTML in the body so that my-element is rendered inside of my-parent
+
+```
+<my-parent>
+    <my-element name="testtest" id="my-element">
+        <h1 slot="title">Slots rule!</h1>
+    </my-element>
+</my-parent>
+```
+
+Now from my-element we want to dispatch an event when it has been click.
+
+1. Add an event listener in the constructor
+2. Create a click handler which it's turn dispatched an 'click-count-changed' CustomEvent
+3. The CustomEvent should have composed set to true to bubble through the shadow DOM
+4. In my-parent we listen for the 'click-count-changed' event.
+
+``` js
+//Inside the constructor of my-element
+this.addEventListener('click', this.onClick);
+
+//Add the click handler to my-element
+onClick() {
+    this.clickCount++;
+    this.dispatchEvent(new CustomEvent('click-count-changed', {
+        detail: {count: this.clickCount}, bubbles: true, composed: true
+    }));
+}
+
+
+
+
+```

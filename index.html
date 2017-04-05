@@ -200,7 +200,8 @@ this.shadowRoot.appendChild(content);
 }
 
 </code></pre>
-  
+   <aside class="special">Slotted elements retain the style they had from the scope where they are defined</aside>
+   
 
       </google-codelab-step>
     
@@ -257,11 +258,16 @@ attributeChangedCallback(attrName, oldVal, newVal) {
 }
 
 </code></pre>
-  Run the previous setAttribute command from your console again and notice that the greeting updates.  <h3>Reflecting properties to attributes</h3>
+  Run the previous setAttribute command from your console again and notice that the greeting updates.  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Reflecting properties to attributes" duration="0">
+        <h3>Setting the attribute when properties change</h3>
   Often we want the properties of Custom Elements to be reflected in the attributes. If you run <code>$(&#39;my-element&#39;).name = &#39;something&#39;;</code> you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.  <pre><code language="js" class="js">//Inside if(val) of set name()
 this.setAttribute(&#39;name&#39;, this._name);
 </code></pre>
-  Inspect this common pattern:  <pre><code language="js" class="js">
+  Inspect this common pattern in which the getters and setters reflect and modify the boolean attribute ‘disabled’:  <pre><code language="js" class="js">
 static get observedAttributes() {
     return [&#39;disabled&#39;];
 }
@@ -278,9 +284,8 @@ set disabled(val) {
     }
 }
 
-// Only called for the disabled and open attributes due to observedAttributes
-attributeChangedCallback(name, oldValue, newValue) {
-    // When the drawer is disabled, update keyboard/screen reader behavior.
+attributeChangedCallback() {
+    // When disabled, update keyboard/screen reader behavior.
     if (this.disabled) {
         this.setAttribute(&#39;tabindex&#39;, &#39;-1&#39;);
         this.setAttribute(&#39;aria-disabled&#39;, &#39;true&#39;);
@@ -291,13 +296,51 @@ attributeChangedCallback(name, oldValue, newValue) {
 }
 
 </code></pre>
+  Implement this pattern in your Custom Element. Tab through the page and see the difference the disabled attribute now makes.  <ol start="1">
+<li>Add disabled styles</li>
+</ol>
+  <pre><code language="css" class="css">    :host([disabled]) {
+        opacity: 0.2;
+    }
+
+</code></pre>
   
 
       </google-codelab-step>
     
       <google-codelab-step label="Passing variables up (eventing)" duration="0">
-          <pre><code>&lt;!--- Element cache--&gt;
-&lt;!-----&gt;
+        <h3>Creating a parent element</h3>
+  Often you want to notify the parent elements that stuff changed. First we create this parent:  <ol start="1">
+<li>Create a new Custom Element named my-parent</li>
+<li>In the contstructor add a slot element</li>
+<li>Compose the HTML in the body so that my-element is rendered inside of my-parent</li>
+</ol>
+  <pre><code>&lt;my-parent&gt;
+    &lt;my-element name=&#34;testtest&#34; id=&#34;my-element&#34;&gt;
+        &lt;h1 slot=&#34;title&#34;&gt;Slots rule!&lt;/h1&gt;
+    &lt;/my-element&gt;
+&lt;/my-parent&gt;
+</code></pre>
+  Now from my-element we want to dispatch an event when it has been click.  <ol start="1">
+<li>Add an event listener in the constructor</li>
+<li>Create a click handler which it’s turn dispatched an ‘click-count-changed’ CustomEvent</li>
+<li>The CustomEvent should have composed set to true to bubble through the shadow DOM</li>
+<li>In my-parent we listen for the ‘click-count-changed’ event.</li>
+</ol>
+  <pre><code language="js" class="js">//Inside the constructor of my-element
+this.addEventListener(&#39;click&#39;, this.onClick);
+
+//Add the click handler to my-element
+onClick() {
+    this.clickCount++;
+    this.dispatchEvent(new CustomEvent(&#39;click-count-changed&#39;, {
+        detail: {count: this.clickCount}, bubbles: true, composed: true
+    }));
+}
+
+
+
+
 </code></pre>
  
 
