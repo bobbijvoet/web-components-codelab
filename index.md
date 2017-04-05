@@ -31,7 +31,7 @@ Setup an index.html file with a doctype, a element named my-element and add a sc
 Positive
 : View the index.html file in Chrome since this browser has the best support for Web Components today.
 
-## Simple Element using HTMLElement
+## Simple element
 Duration: 0:15
 
 
@@ -63,7 +63,7 @@ customElements.define('my-element', MyElement);
 
 View the html file in your browser and see that the element renders.
 
-## Using the lifecycle hooks
+## Life cycle hooks part 1
 Duration: 0:15
 
 There are 4 important life-cycle hooks for Custom Elements
@@ -242,16 +242,19 @@ Negative
 
 
 ## Life cycle hooks part 2
+Duration: 0:10
 
 ### Rules
 
+### Move the shadow dom code
 
-Since we're allowed to create shadow dom in the constructor we can move
+Since we're allowed to create shadow dom in the constructor we can move the code from connectedCallback to the constructor.
 
 
 ## Slots
+Duration: 0:15
 
-### Placeholders
+### What are slots?
 Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:
 
 ```
@@ -262,7 +265,7 @@ Slots are placeholders inside your component that users can fill with their own 
 
 ```
 
-Note that the text is not rendered. If we add a `<slot>` element to our `<template>` then we see the text get rendered.
+Note that the text is not rendered. If we add a `<slot>` element in our `<template>` then we see the text get rendered.
 
 ### Fallback
 
@@ -296,8 +299,6 @@ Use the `::slotted` selector to match nodes inside slots.
 
 ``` css
 ::slotted(h1) {
-    margin: 0;
-    font-weight: 300;
     color: red;
 }
 ::slotted(.title) {
@@ -307,11 +308,123 @@ Use the `::slotted` selector to match nodes inside slots.
 ```
 
 
-##  Variables on the Element
+## Attributes on the Element
+Duration: 0:30
 
-    ### Attributes
-    ### Properties
-    ### Passing variables up (eventing)
+### Attributes
+
+Users of your Custom Elements can set attributes which you can use inside of the component. To read out an attribute
+
+1. Add an attribute to your Custom Element
+2. Read the attribute inside of the connectedCallback hook using this.getAttribute();
+3. If the attribute is set, update the name property and the greeting text.
+
+
+``` js
+connectedCallback() {
+    let name = this.getAttribute('name');
+    if(name){
+        this.name = name;
+        this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this.name}`;
+    }
+}
+```
+
+### Using properties, getters and setters
+
+We can make life easier by creating getters and setters for name.
+
+1. Create the private variable this._name
+2. Create a getter for name which returns the private var
+3. Create a setter in which we check if _name has changed and if so, update the greeting
+4. Make sure that the initial assignment of this.name happens after you created the shadow root
+5. Remove the lines where we set the greeting except for in the name setter.
+
+``` js
+get name() {
+    return this._name;
+}
+
+set name(val) {
+    if (val === this._name) return;
+    if (val) {
+        this._name = val;
+        this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this.name}`;
+    }
+}
+```
+
+Now, change the connectedCallback to: `this.name = this.getAttribute('name');`
+
+
+### Observing changed attributes
+
+If you update your Custom Elements attribute 'name' via the console using `$('my-element').setAttribute('name', 'something');`, you will notice that the greeting won't get updated. We need to observe our attribute in order to update the greeting.
+
+1. Add a static get observedAttributes() which return an array with the element 'name'
+2. In the attributeChangedCallback check if the value actually has changed
+3. Then use the name setter to update it to the new attribute value
+
+``` js
+
+static get observedAttributes() {
+    return ['name'];
+}
+
+attributeChangedCallback(attrName, oldVal, newVal) {
+    if (newVal != this[attrName]) {
+        this[attrName] = newVal;
+    }
+}
+
+```
+
+Run the previous setAttribute command from your console again and notice that the greeting updates.
+
+### Reflecting properties to attributes
+
+Often we want the properties of Custom Elements to be reflected in the attributes. If you run `$('my-element').name = 'something';` you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.
+
+``` js
+//Inside if(val) of set name()
+this.setAttribute('name', this._name);
+```
+
+Inspect this common pattern:
+
+``` js
+
+static get observedAttributes() {
+    return ['disabled'];
+}
+
+get disabled() {
+    return this.hasAttribute('disabled');
+}
+
+set disabled(val) {
+    if (val) {
+        this.setAttribute('disabled', '');
+    } else {
+        this.removeAttribute('disabled');
+    }
+}
+
+// Only called for the disabled and open attributes due to observedAttributes
+attributeChangedCallback(name, oldValue, newValue) {
+    // When the drawer is disabled, update keyboard/screen reader behavior.
+    if (this.disabled) {
+        this.setAttribute('tabindex', '-1');
+        this.setAttribute('aria-disabled', 'true');
+    } else {
+        this.setAttribute('tabindex', '0');
+        this.setAttribute('aria-disabled', 'false');
+    }
+}
+
+```
+
+## Passing variables up (eventing)
 
 
 <!--## Creating our Polymer clone-->

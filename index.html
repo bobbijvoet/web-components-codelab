@@ -37,7 +37,7 @@
 
       </google-codelab-step>
     
-      <google-codelab-step label="Simple Element using HTMLElement" duration="15">
+      <google-codelab-step label="Simple element" duration="15">
           We start with a very simple Custom Element by extending <code>HTMLElement</code>. On the connected lifecycle hook (more on that in the next step) we replace the contents with some elements using <code>this.innerHTML</code>.  <pre><code language="js" class="js">
 //Inside the script tag
 class MyElement extends HTMLElement {
@@ -55,7 +55,7 @@ customElements.define(&#39;my-element&#39;, MyElement);
 
       </google-codelab-step>
     
-      <google-codelab-step label="Using the lifecycle hooks" duration="15">
+      <google-codelab-step label="Life cycle hooks part 1" duration="15">
           There are 4 important life-cycle hooks for Custom Elements  <h3>1. Constructor</h3>
   <pre><code>constructor() {
     // An instance of the element is created.
@@ -166,21 +166,22 @@ this.shadowRoot.appendChild(content);
 
       </google-codelab-step>
     
-      <google-codelab-step label="Life cycle hooks part 2" duration="0">
-        <h3>Rules</h3>
-  Since we’re allowed to create shadow dom in the constructor we can move  
+      <google-codelab-step label="Life cycle hooks part 2" duration="10">
+          <h3>Rules</h3>
+  <h3>Move the shadow dom code</h3>
+  Since we’re allowed to create shadow dom in the constructor we can move the code from connectedCallback to the constructor.  
 
       </google-codelab-step>
     
-      <google-codelab-step label="Slots" duration="0">
-        <h3>Placeholders</h3>
+      <google-codelab-step label="Slots" duration="15">
+          <h3>What are slots?</h3>
   Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:  <pre><code>
 &lt;my-element&gt;
     hello
 &lt;/my-element&gt;
 
 </code></pre>
-  Note that the text is not rendered. If we add a <code>&lt;slot&gt;</code> element to our <code>&lt;template&gt;</code> then we see the text get rendered.  <h3>Fallback</h3>
+  Note that the text is not rendered. If we add a <code>&lt;slot&gt;</code> element in our <code>&lt;template&gt;</code> then we see the text get rendered.  <h3>Fallback</h3>
   Put some text in the <code>&lt;slot&gt;</code>, notice that it’s overwritten. Now if we remove the Light DOM you’ll see the text of your slot is rendered.   <aside class="warning">For this fallback to work, make sure your Custom Element is completely empty.</aside>
    <h3>Named slots</h3>
   Add a name to your slot:  <pre><code>&lt;slot name=&#34;title&#34;&gt;&lt;/slot&gt;
@@ -192,8 +193,6 @@ this.shadowRoot.appendChild(content);
 </code></pre>
   Create one more slot and play with the defaults.  <h3>Element with ::slotted styles</h3>
   Use the <code>::slotted</code> selector to match nodes inside slots.  <pre><code language="css" class="css">::slotted(h1) {
-    margin: 0;
-    font-weight: 300;
     color: red;
 }
 ::slotted(.title) {
@@ -205,12 +204,99 @@ this.shadowRoot.appendChild(content);
 
       </google-codelab-step>
     
-      <google-codelab-step label="Variables on the Element" duration="0">
-        <pre><code>### Attributes
-### Properties
-### Passing variables up (eventing)
+      <google-codelab-step label="Attributes on the Element" duration="30">
+          <h3>Attributes</h3>
+  Users of your Custom Elements can set attributes which you can use inside of the component. To read out an attribute  <ol start="1">
+<li>Add an attribute to your Custom Element</li>
+<li>Read the attribute inside of the connectedCallback hook using this.getAttribute();</li>
+<li>If the attribute is set, update the name property and the greeting text.</li>
+</ol>
+  <pre><code language="js" class="js">connectedCallback() {
+    let name = this.getAttribute(&#39;name&#39;);
+    if(name){
+        this.name = name;
+        this.shadowRoot.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.name}`;
+    }
+}
 </code></pre>
-    <pre><code>&lt;!--- Element cache--&gt;
+  <h3>Using properties, getters and setters</h3>
+  We can make life easier by creating getters and setters for name.  <ol start="1">
+<li>Create the private variable this._name</li>
+<li>Create a getter for name which returns the private var</li>
+<li>Create a setter in which we check if _name has changed and if so, update the greeting</li>
+<li>Make sure that the initial assignment of this.name happens after you created the shadow root</li>
+<li>Remove the lines where we set the greeting except for in the name setter.</li>
+</ol>
+  <pre><code language="js" class="js">get name() {
+    return this._name;
+}
+
+set name(val) {
+    if (val === this._name) return;
+    if (val) {
+        this._name = val;
+        this.shadowRoot.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.name}`;
+    }
+}
+</code></pre>
+  Now, change the connectedCallback to: <code>this.name = this.getAttribute(&#39;name&#39;);</code>  <h3>Observing changed attributes</h3>
+  If you update your Custom Elements attribute ‘name’ via the console using <code>$(&#39;my-element&#39;).setAttribute(&#39;name&#39;, &#39;something&#39;);</code>, you will notice that the greeting won’t get updated. We need to observe our attribute in order to update the greeting.  <ol start="1">
+<li>Add a static get observedAttributes() which return an array with the element ‘name’</li>
+<li>In the attributeChangedCallback check if the value actually has changed</li>
+<li>Then use the name setter to update it to the new attribute value</li>
+</ol>
+  <pre><code language="js" class="js">
+static get observedAttributes() {
+    return [&#39;name&#39;];
+}
+
+attributeChangedCallback(attrName, oldVal, newVal) {
+    if (newVal != this[attrName]) {
+        this[attrName] = newVal;
+    }
+}
+
+</code></pre>
+  Run the previous setAttribute command from your console again and notice that the greeting updates.  <h3>Reflecting properties to attributes</h3>
+  Often we want the properties of Custom Elements to be reflected in the attributes. If you run <code>$(&#39;my-element&#39;).name = &#39;something&#39;;</code> you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.  <pre><code language="js" class="js">//Inside if(val) of set name()
+this.setAttribute(&#39;name&#39;, this._name);
+</code></pre>
+  Inspect this common pattern:  <pre><code language="js" class="js">
+static get observedAttributes() {
+    return [&#39;disabled&#39;];
+}
+
+get disabled() {
+    return this.hasAttribute(&#39;disabled&#39;);
+}
+
+set disabled(val) {
+    if (val) {
+        this.setAttribute(&#39;disabled&#39;, &#39;&#39;);
+    } else {
+        this.removeAttribute(&#39;disabled&#39;);
+    }
+}
+
+// Only called for the disabled and open attributes due to observedAttributes
+attributeChangedCallback(name, oldValue, newValue) {
+    // When the drawer is disabled, update keyboard/screen reader behavior.
+    if (this.disabled) {
+        this.setAttribute(&#39;tabindex&#39;, &#39;-1&#39;);
+        this.setAttribute(&#39;aria-disabled&#39;, &#39;true&#39;);
+    } else {
+        this.setAttribute(&#39;tabindex&#39;, &#39;0&#39;);
+        this.setAttribute(&#39;aria-disabled&#39;, &#39;false&#39;);
+    }
+}
+
+</code></pre>
+  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Passing variables up (eventing)" duration="0">
+          <pre><code>&lt;!--- Element cache--&gt;
 &lt;!-----&gt;
 </code></pre>
  
