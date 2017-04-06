@@ -4,7 +4,7 @@
 
 
 <my-parent>
-    <my-element name="testtest" id="my-element">
+    <my-element firstname="tetet" id="my-element">
         <h1 slot="title">Slots rule!</h1>
     </my-element>
 </my-parent>
@@ -57,9 +57,7 @@
             this.attachShadow({mode: 'open'});
             this.shadowRoot.appendChild(content);
 
-            this.name = 'Bob';
-            this.clickCount = 5;
-
+            this.clickCount = 0;
             this.addEventListener('click', this.onClick);
         }
 
@@ -68,23 +66,26 @@
             this.dispatchEvent(new CustomEvent('click-count-changed', {
                 detail: {count: this.clickCount}, bubbles: true, composed: true
             }));
-
         }
 
         connectedCallback() {
-            this.name = this.getAttribute('name');
+            this.firstname = this.getAttribute('firstname');
+            console.log(this.firstname);
+
         }
 
-        get name() {
-            return this._name;
+        get firstname() {
+            return this._firstname;
         }
 
-        set name(val) {
-            if (val === this._name) return;
+        set firstname(val) {
+            if (val === this._firstname) return;
             if (val) {
-                this._name = val;
-                this.setAttribute('name', this._name);
-                this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this._name}`;
+                this._firstname = val;
+                this.setAttribute('firstname', this._firstname);
+                this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this._firstname}`;
+            } else {
+                this.firstname = 'Bob';
             }
         }
 
@@ -99,7 +100,7 @@
         }
 
         static get observedAttributes() {
-            return ['disabled', 'name'];
+            return ['disabled', 'firstname'];
         }
 
         get disabled() {
@@ -131,7 +132,10 @@
             super();
 
             this.attachShadow({mode: 'open'});
-            var slot = document.createElement('slot');
+            let slot = document.createElement('slot');
+            let span = document.createElement('span');
+            span.setAttribute('id', 'count');
+            this.shadowRoot.appendChild(span);
             this.shadowRoot.appendChild(slot);
 
             this.addEventListener('click-count-changed', this.clickCountUpdated);
@@ -139,6 +143,9 @@
 
         clickCountUpdated (e){
             console.log(e.detail.count);
+            this.shadowRoot.getElementById('count').textContent = e.detail.count;
+
+
         }
     }
 

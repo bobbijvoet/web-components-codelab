@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+
+<my-element>
+</my-element>
+
+
+<script>
+    class MyElement extends HTMLElement {
+
+        constructor() {
+            super();
+            this.name = 'bob'
+        }
+
+
+        connectedCallback() {
+            this.innerHTML = `<h1>Hello!</h1><p>${this.name}</p>`;
+        }
+    }
+
+
+    customElements.define('my-element', MyElement);
+</script>

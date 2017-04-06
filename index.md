@@ -15,7 +15,11 @@ https://github.com/googlecodelabs/tools/tree/master/claat/parser/md
 ## Setup
 Duration: 0:05
 
-Setup an index.html file with a doctype, a element named my-element and add a script tag.
+1. Setup an HTML file with a doctype, a element named my-element and add a script tag.
+
+
+Positive
+: View the HTML file in Chrome since this browser has the best support for Web Components today.
 
 ``` html
 <!DOCTYPE html>
@@ -27,9 +31,10 @@ Setup an index.html file with a doctype, a element named my-element and add a sc
 </script>
 ```
 
+Open Chrome Dev Tools Console
 
-Positive
-: View the index.html file in Chrome since this browser has the best support for Web Components today.
+1. Open the Console (opt+cmd+j)
+
 
 ## Simple element
 Duration: 0:15
@@ -61,21 +66,19 @@ customElements.define('my-element', MyElement);
 
 ```
 
-View the html file in your browser and see that the element renders.
+View the HTML file in your browser and see that the element renders.
 
 ## Life cycle hooks part 1
 Duration: 0:15
 
 There are 4 important life-cycle hooks for Custom Elements
 
-
-
 ### 1. Constructor
 ```
 constructor() {
     // An instance of the element is created.
     // Useful for initializing state, settings up event listeners, or creating shadow dom.
-    super(); // always call super() first in the ctor.
+    super(); // always call super() first in the constructor.
 }
 ```
 
@@ -86,9 +89,9 @@ Negative
 
 
 
-Set up some state for your component:
+Add some intial state to the constructor for your Custom Element:
 
-`this.name = 'Bob'`
+`this.firstname = 'Bob'`
 
 ### 2. Connected
 ```
@@ -102,13 +105,14 @@ connectedCallback() {
 ```
 
 
-Use the state and show it using a template literal:
+Use the initial state and show it using a template literal. Add this to the connectedCallback:
 
 ```
 
-this.innerHTML = `<h1>Hello!</h1><p>${this.name}</p>`;
+this.innerHTML = `<h1>Hello!</h1><p>${this.firstname}</p>`;
 ```
 
+Now your component renders the initial that you provided.
 
 ### 3. Disconnected
 ```
@@ -150,17 +154,17 @@ Create a `<template>` element just above the `<script>` tag:
 
 We are going to use this template as the content for our Custom Element:
 
-1. Give the template an id
-2. Select it using getElementById
-3. Clone the contents
-4. Set the content of the greeting paragraph to the template string
-5. Append it to your Custom Element
+1. Add an id to the template
+2. Get the template by id and assign it to a let
+3. Assign the contents of the template to a let using cloneNode
+4. Set the textContent of the greeting paragraph (by selecting it by id) to the template string
+5. Append the cloned node to your Custom Element
 
 ```
 connectedCallback() {
     let template = document.getElementById('my-template');
     let content = template.content.cloneNode(true); // Parameter is for deep cloning
-    content.getElementById('greeting').textContent = `Hi, ${this.name}`;
+    content.getElementById('greeting').textContent = `Hi, ${this.firstname}`;
     this.appendChild(content);
 }
 ```
@@ -184,21 +188,19 @@ Create a `<style>` tag inside of the `<template>`. Add some style for the paragr
 
 ```
 
-Add a paragraph next to your Custom Element and see that the styles are applied there as well.
+Add a paragraph next to your Custom Element and see that the styles are applied there as well. Since we are not leveraging the shadow DOM the styles are applied globally.
 
 
 ### Adding a shadow root
 
-Instead of attaching the Template content directly as a child, we create a Shadow Root, and attach the template inside.
-
-
+Now let's add shadow DOM. So instead of attaching the template content directly as a child, we create a shadow root, and attach the template inside.
 
 ```
 this.attachShadow({mode: 'open'}); // Parameter is for deep cloning
 this.shadowRoot.appendChild(content);
 ```
 
-Notice that only the paragraph in the shadow dom has the styles applied.
+Notice that now only the paragraph in the shadow DOM has the styles applied.
 
 ## Styling the Custom Element
 Duration: 0:10
@@ -238,20 +240,41 @@ You can also use :host to encapsulate behaviors or to style internal nodes based
 
 
 Negative
-: Be aware that outside styles win in terms of specificity, so users can override your top-level styles from outside.
+: Be aware that outside styles win (in terms of specificity), so users can override your top-level styles from outside.
 
 
 ## Life cycle hooks part 2
 Duration: 0:10
 
-### Rules
+### Rules of the constructor
+
+The constructor has two important rules:
+1. You cannot attach or manipulate your children.
+   this.appendChild() or this.innerHTML is NOT allowed
+   However, manipulating the shadowRoot is OK
+2. You cannot inspect or modify your attributes.
+   Attributes are part of the DOM, and the constructor() is called
+   before your element is aware of the DOM, so it won't work
 
 ### Move the shadow dom code
 
-Since we're allowed to create shadow dom in the constructor we can move the code from connectedCallback to the constructor.
+Since we're allowed to create shadow dom in the constructor we can move the code from connectedCallback to the constructor. So let's do that!
 
 
-## Slots
+``` js
+constructor() {
+    super();
+    let template = document.getElementById('my-template');
+    let content = template.content.cloneNode(true);
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.appendChild(content);
+}
+
+```
+
+Now the connectedCallback should be empty.
+
+## Using slots
 Duration: 0:15
 
 ### What are slots?
@@ -265,7 +288,15 @@ Slots are placeholders inside your component that users can fill with their own 
 
 ```
 
-Note that the text is not rendered. If we add a `<slot>` element in our `<template>` then we see the text get rendered.
+Note that the text is not rendered.
+
+1. Add a slot element to the template to see the text get rendered
+
+``` html
+<template id="my-template">
+    <slot></slot>
+</template>
+```
 
 ### Fallback
 
@@ -315,63 +346,91 @@ Duration: 0:30
 
 ### Attributes
 
-Users of your Custom Elements can set attributes which you can use inside of the component. To read out an attribute
+Users of your Custom Elements can set attributes which you can use inside of the component.
 
-1. Add an attribute to your Custom Element
+1. Add an attribute called 'firstname' to your Custom Element
 2. Read the attribute inside of the connectedCallback hook using this.getAttribute();
-3. If the attribute is set, update the name property and the greeting text.
+3. If the attribute is set, update the firstname property and the greeting text.
 
 
 ``` js
 connectedCallback() {
-    let name = this.getAttribute('name');
-    if(name){
-        this.name = name;
-        this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this.name}`;
+    let firstname = this.getAttribute('firstname');
+    if(firstname){
+        this.firstname = firstname;
+        this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this.firstname}`;
     }
 }
 ```
+
+Nice. We get the attribute value. But we can make this more simple...
 
 ### Using properties, getters and setters
 
-We can make life easier by creating getters and setters for name.
+We can make life easier by creating getters and setters for firstname.
 
-1. Create the private variable this._name
-2. Create a getter for name which returns the private var
-3. Create a setter in which we check if _name has changed and if so, update the greeting
-4. Make sure that the initial assignment of this.name happens after you created the shadow root
-5. Remove the lines where we set the greeting except for in the name setter.
+1. Create the 'private' variable _firstname
+2. Create a getter for firstname which returns the private var
 
 ``` js
-get name() {
-    return this._name;
+get firstname() {
+    return this._firstname;
 }
+```
 
-set name(val) {
-    if (val === this._name) return;
+
+
+Positive
+: Private does not exists in javascript.
+By prepending props with an underscore you should know to not use it as a part of the component's API.
+
+
+
+3. Create a setter in which we check if _firstname has changed and if so, update the greeting
+4. Make sure that the initial assignment of this.firstname happens after you created the shadow root
+5. Remove the lines where we set the greeting except for in the firstname setter.
+
+
+``` js
+set firstname(val) {
+    if (val === this._firstname) return;
     if (val) {
-        this._name = val;
-        this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this.name}`;
+        this._firstname = val;
+        this.shadowRoot.getElementById('greeting').textContent = `Hi, ${this.firstname}`;
     }
 }
 ```
 
-Now, change the connectedCallback to: `this.name = this.getAttribute('name');`
+Now, change the connectedCallback to: `this.firstname = this.getAttribute('firstname');`
 
+
+### Setting a default value
+
+Remove the initial assignment in the constructor to this.firstname, and add an else statement to the firstname setter
+
+``` js
+set firstname(val) {
+    if { ...
+    } else {
+        this.firstname = 'Default Bob';
+    }
+}
+
+```
 
 
 ### Observing changed attributes
 
-If you update your Custom Elements attribute 'name' via the console using `$('my-element').setAttribute('name', 'something');`, you will notice that the greeting won't get updated. We need to observe our attribute in order to update the greeting.
+If you update your Custom Elements attribute 'firstname' via the console using `$('my-element').setAttribute('firstname', 'something');`, you will notice that the greeting won't get updated. We need to observe our attribute in order to update the greeting.
 
-1. Add a static get observedAttributes() which return an array with the element 'name'
+1. Add a static get observedAttributes() which return an array with the element 'firstname'
 2. In the attributeChangedCallback check if the value actually has changed
-3. Then use the name setter to update it to the new attribute value
+3. Then use the firstname setter to update it to the new attribute value
 
 ``` js
 
 static get observedAttributes() {
-    return ['name'];
+    return ['firstname'];
 }
 
 attributeChangedCallback(attrName, oldVal, newVal) {
@@ -385,14 +444,15 @@ attributeChangedCallback(attrName, oldVal, newVal) {
 Run the previous setAttribute command from your console again and notice that the greeting updates.
 
 ## Reflecting properties to attributes
+Duration: 0:20
 
 ### Setting the attribute when properties change
 
-Often we want the properties of Custom Elements to be reflected in the attributes. If you run `$('my-element').name = 'something';` you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.
+Often we want the properties of Custom Elements to be reflected in the attributes. If you run `$('my-element').firstname = 'something';` you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.
 
 ``` js
-//Inside if(val) of set name()
-this.setAttribute('name', this._name);
+//Inside if(val) of set firstname()
+this.setAttribute('firstname', this._firstname);
 ```
 
 Inspect this common pattern in which the getters and setters reflect and modify the boolean attribute 'disabled':
@@ -430,7 +490,9 @@ attributeChangedCallback() {
 
 Implement this pattern in your Custom Element. Tab through the page and see the difference the disabled attribute now makes.
 
-1. Add disabled styles
+
+
+1. Let's add some styles for our disabled Custom Element
 
 ``` css
     :host([disabled]) {
@@ -439,55 +501,69 @@ Implement this pattern in your Custom Element. Tab through the page and see the 
 
 ```
 
+Run `$('my-element').disabled = true` in your console to see the difference.
+
 
 ## Passing variables up (eventing)
+Duration: 0:40
 
 ###  Creating a parent element
 
-Often you want to notify the parent elements that stuff changed. First we create this parent:
+Often you want to notify the parent elements that stuff changed. So let's create a parent element:
 
 1. Create a new class named MyParent which extends HTMLElement
-2. In the constructor add a slot element, as such:
+2. In the constructor add a slot element to the shadow root
 
 ``` js
 class MyParent extends HTMLElement {
-        constructor() {
-            super();
+    constructor() {
+        super();
 
-            this.attachShadow({mode: 'open'});
-            var slot = document.createElement('slot');
-            this.shadowRoot.appendChild(slot);
-        }
+        this.attachShadow({mode: 'open'});
+        var slot = document.createElement('slot');
+        this.shadowRoot.appendChild(slot);
     }
+}
 ```
 
-3. Define it using customElements.define 
+Define it using customElements.define
 
 ```
     customElements.define('my-parent', MyParent);
 ```
 
-4. Compose the HTML in the body so that my-element is rendered inside of my-parent
+Compose the HTML in the body so that my-element is rendered inside of my-parent
 
 ```
 <my-parent>
-    <my-element name="testtest" id="my-element">
+    <my-element firstname="testtest" id="my-element">
         <h1 slot="title">Slots rule!</h1>
     </my-element>
 </my-parent>
 ```
 
-Now from my-element we want to dispatch an event when it has been click.
+Everything still looks the same, right? We just render our my-element inside the default slot.
 
-1. Add an event listener in the constructor
-2. Create a click handler which it's turn dispatched an 'click-count-changed' CustomEvent
-3. The CustomEvent should have composed set to true to bubble through the shadow DOM
-4. In my-parent we listen for the 'click-count-changed' event.
+### Setting the clickCount and adding the click listener
+
+Now from my-element we want to dispatch an event with the clickCount to the parent when it has been clicked.
+
+1. Set the initial count prop in the constructor
+2. Add an click listener in the constructor
 
 ``` js
 //Inside the constructor of my-element
+this.clickCount = 0;
 this.addEventListener('click', this.onClick);
 
+```
+### Adding the click handler
+
+1. Create a click handler which increments the clickCount prop and dispatches an 'click-count-changed' CustomEvent containing the details (count)
+2. The CustomEvent should have composed set to true to bubble through the shadow DOM
+
+
+```
 //Add the click handler to my-element
 onClick() {
     this.clickCount++;
@@ -495,8 +571,81 @@ onClick() {
         detail: {count: this.clickCount}, bubbles: true, composed: true
     }));
 }
+```
+
+### Catch the event in the parent
+In my-parent we listen for the 'click-count-changed' event.
+
+1. Add an event listener in the constructor for 'click-count-changed'
+2. Handle the event by logging it
 
 
+``` js
+//Inside the constructor of parent-element
+this.addEventListener('click-count-changed', this.clickCountUpdated);
 
+//Add the handler for the click-count-changed event
+clickCountUpdated(e) {
+    console.log(e.detail.count);
+}
+```
+
+The constructed my-element is encapsulated and unaware of its surroundings. It sends out events to notify it's parents that something has changed.
+
+### Display the count in my-parent
+
+Add a span with an id to the shadowRoot in the constructor:
+
+``` js
+let span = document.createElement('span');
+span.setAttribute('id', 'count');
+this.shadowRoot.appendChild(span);
+```
+
+In the click-count-changed handler add:
+
+``` js
+this.shadowRoot.getElementById('count').textContent = e.detail.count;
+```
+
+
+## Finish
+Duration: 0:00
+### Thanks
+I want to thank you for completing this Codelab! Please do not hesitate to provide feedback!
+
+
+## My conclusions
+
+### Pros
+
+- Easy to use
+- Not much code needed for simple components
+-  Shadow DOM is very powerful
+
+### Cons
+- We can only use strings as attributes, for object or other types we need transforming (that's why Polymer asks for property types)
+- For reflection, we need to transform camelCase property names to kebab-case attributes
+- Templating is doable, but easier when we have templating (like {{var}}), could virtual DOM help us here?
+- Bindings must set up manually
+
+### Conclusion
+- Web Components are pretty low-level
+- No binding
+- No templating
+
+## BONUS: Browser support
+Duration: 0:15
+Chrome is supporting all this, but what if you want to support other browsers...
+
+1. Install FireFox
+2. Add the following to your HTML
 
 ```
+
+
+## BONUS: Custom properties
+Duration: 0:15
+### Use vars to change stying of Custom Elements
+
+We provide Custom Elements to our users, but what if they want different styling of these components?

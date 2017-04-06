@@ -24,7 +24,11 @@
                   feedback-link="">
     
       <google-codelab-step label="Setup" duration="5">
-          Setup an index.html file with a doctype, a element named my-element and add a script tag.  <pre><code language="html" class="html">&lt;!DOCTYPE html&gt;
+          <ol start="1">
+<li>Setup an HTML file with a doctype, a element named my-element and add a script tag.</li>
+</ol>
+   <aside class="special">View the HTML file in Chrome since this browser has the best support for Web Components today.</aside>
+   <pre><code language="html" class="html">&lt;!DOCTYPE html&gt;
 
 &lt;my-element&gt;&lt;/my-element&gt;
 
@@ -32,8 +36,10 @@
 
 &lt;/script&gt;
 </code></pre>
-   <aside class="special">View the index.html file in Chrome since this browser has the best support for Web Components today.</aside>
-   
+  Open Chrome Dev Tools Console  <ol start="1">
+<li>Open the Console (opt+cmd+j)</li>
+</ol>
+  
 
       </google-codelab-step>
     
@@ -51,7 +57,7 @@ class MyElement extends HTMLElement {
 customElements.define(&#39;my-element&#39;, MyElement);
 
 </code></pre>
-  View the html file in your browser and see that the element renders.  
+  View the HTML file in your browser and see that the element renders.  
 
       </google-codelab-step>
     
@@ -60,11 +66,11 @@ customElements.define(&#39;my-element&#39;, MyElement);
   <pre><code>constructor() {
     // An instance of the element is created.
     // Useful for initializing state, settings up event listeners, or creating shadow dom.
-    super(); // always call super() first in the ctor.
+    super(); // always call super() first in the constructor.
 }
 </code></pre>
    <aside class="warning">Always call super(); first!</aside>
-   Set up some state for your component:  <code>this.name = &#39;Bob&#39;</code>  <h3>2. Connected</h3>
+   Add some intial state to the constructor for your Custom Element:  <code>this.firstname = &#39;Bob&#39;</code>  <h3>2. Connected</h3>
   <pre><code>connectedCallback() {
     // Called every time the element is inserted into the DOM.
     // Useful for running setup code, such as fetching resources or rendering.
@@ -73,10 +79,10 @@ customElements.define(&#39;my-element&#39;, MyElement);
 
 
 </code></pre>
-  Use the state and show it using a template literal:  <pre><code>
-this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.name}&lt;/p&gt;`;
+  Use the initial state and show it using a template literal. Add this to the connectedCallback:  <pre><code>
+this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.firstname}&lt;/p&gt;`;
 </code></pre>
-  <h3>3. Disconnected</h3>
+  Now your component renders the initial that you provided.  <h3>3. Disconnected</h3>
   <pre><code>disconnectedCallback() {
     // Called every time the element is removed from the DOM.
     // Useful for running clean up code (removing event listeners, etc.).
@@ -102,16 +108,16 @@ this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.name}&lt;/p&gt;`;
 
 </code></pre>
   We are going to use this template as the content for our Custom Element:  <ol start="1">
-<li>Give the template an id</li>
-<li>Select it using getElementById</li>
-<li>Clone the contents</li>
-<li>Set the content of the greeting paragraph to the template string</li>
-<li>Append it to your Custom Element</li>
+<li>Add an id to the template</li>
+<li>Get the template by id and assign it to a let</li>
+<li>Assign the contents of the template to a let using cloneNode</li>
+<li>Set the textContent of the greeting paragraph (by selecting it by id) to the template string</li>
+<li>Append the cloned node to your Custom Element</li>
 </ol>
   <pre><code>connectedCallback() {
     let template = document.getElementById(&#39;my-template&#39;);
     let content = template.content.cloneNode(true); // Parameter is for deep cloning
-    content.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.name}`;
+    content.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.firstname}`;
     this.appendChild(content);
 }
 </code></pre>
@@ -129,11 +135,11 @@ this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.name}&lt;/p&gt;`;
 
 
 </code></pre>
-  Add a paragraph next to your Custom Element and see that the styles are applied there as well.  <h3>Adding a shadow root</h3>
-  Instead of attaching the Template content directly as a child, we create a Shadow Root, and attach the template inside.  <pre><code>this.attachShadow({mode: &#39;open&#39;}); // Parameter is for deep cloning
+  Add a paragraph next to your Custom Element and see that the styles are applied there as well. Since we are not leveraging the shadow DOM the styles are applied globally.  <h3>Adding a shadow root</h3>
+  Now let’s add shadow DOM. So instead of attaching the template content directly as a child, we create a shadow root, and attach the template inside.  <pre><code>this.attachShadow({mode: &#39;open&#39;}); // Parameter is for deep cloning
 this.shadowRoot.appendChild(content);
 </code></pre>
-  Notice that only the paragraph in the shadow dom has the styles applied.  
+  Notice that now only the paragraph in the shadow DOM has the styles applied.  
 
       </google-codelab-step>
     
@@ -161,19 +167,32 @@ this.shadowRoot.appendChild(content);
         color: green;
     }
 </code></pre>
-   <aside class="warning">Be aware that outside styles win in terms of specificity, so users can override your top-level styles from outside.</aside>
+   <aside class="warning">Be aware that outside styles win (in terms of specificity), so users can override your top-level styles from outside.</aside>
    
 
       </google-codelab-step>
     
       <google-codelab-step label="Life cycle hooks part 2" duration="10">
-          <h3>Rules</h3>
+          <h3>Rules of the constructor</h3>
+  The constructor has two important rules:  <ol start="1">
+<li>You cannot attach or manipulate your children. this.appendChild() or this.innerHTML is NOT allowed However, manipulating the shadowRoot is OK</li>
+<li>You cannot inspect or modify your attributes. Attributes are part of the DOM, and the constructor() is called before your element is aware of the DOM, so it won’t work</li>
+</ol>
   <h3>Move the shadow dom code</h3>
-  Since we’re allowed to create shadow dom in the constructor we can move the code from connectedCallback to the constructor.  
+  Since we’re allowed to create shadow dom in the constructor we can move the code from connectedCallback to the constructor. So let’s do that!  <pre><code language="js" class="js">constructor() {
+    super();
+    let template = document.getElementById(&#39;my-template&#39;);
+    let content = template.content.cloneNode(true);
+    this.attachShadow({mode: &#39;open&#39;});
+    this.shadowRoot.appendChild(content);
+}
+
+</code></pre>
+  Now the connectedCallback should be empty.  
 
       </google-codelab-step>
     
-      <google-codelab-step label="Slots" duration="15">
+      <google-codelab-step label="Using slots" duration="15">
           <h3>What are slots?</h3>
   Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:  <pre><code>
 &lt;my-element&gt;
@@ -181,7 +200,14 @@ this.shadowRoot.appendChild(content);
 &lt;/my-element&gt;
 
 </code></pre>
-  Note that the text is not rendered. If we add a <code>&lt;slot&gt;</code> element in our <code>&lt;template&gt;</code> then we see the text get rendered.  <h3>Fallback</h3>
+  Note that the text is not rendered.  <ol start="1">
+<li>Add a slot element to the template to see the text get rendered</li>
+</ol>
+  <pre><code language="html" class="html">&lt;template id=&#34;my-template&#34;&gt;
+    &lt;slot&gt;&lt;/slot&gt;
+&lt;/template&gt;
+</code></pre>
+  <h3>Fallback</h3>
   Put some text in the <code>&lt;slot&gt;</code>, notice that it’s overwritten. Now if we remove the Light DOM you’ll see the text of your slot is rendered.   <aside class="warning">For this fallback to work, make sure your Custom Element is completely empty.</aside>
    <h3>Named slots</h3>
   Add a name to your slot:  <pre><code>&lt;slot name=&#34;title&#34;&gt;&lt;/slot&gt;
@@ -207,48 +233,60 @@ this.shadowRoot.appendChild(content);
     
       <google-codelab-step label="Attributes on the Element" duration="30">
           <h3>Attributes</h3>
-  Users of your Custom Elements can set attributes which you can use inside of the component. To read out an attribute  <ol start="1">
-<li>Add an attribute to your Custom Element</li>
+  Users of your Custom Elements can set attributes which you can use inside of the component.  <ol start="1">
+<li>Add an attribute called ‘firstname’ to your Custom Element</li>
 <li>Read the attribute inside of the connectedCallback hook using this.getAttribute();</li>
-<li>If the attribute is set, update the name property and the greeting text.</li>
+<li>If the attribute is set, update the firstname property and the greeting text.</li>
 </ol>
   <pre><code language="js" class="js">connectedCallback() {
-    let name = this.getAttribute(&#39;name&#39;);
-    if(name){
-        this.name = name;
-        this.shadowRoot.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.name}`;
+    let firstname = this.getAttribute(&#39;firstname&#39;);
+    if(firstname){
+        this.firstname = firstname;
+        this.shadowRoot.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.firstname}`;
     }
 }
 </code></pre>
-  <h3>Using properties, getters and setters</h3>
-  We can make life easier by creating getters and setters for name.  <ol start="1">
-<li>Create the private variable this._name</li>
-<li>Create a getter for name which returns the private var</li>
-<li>Create a setter in which we check if _name has changed and if so, update the greeting</li>
-<li>Make sure that the initial assignment of this.name happens after you created the shadow root</li>
-<li>Remove the lines where we set the greeting except for in the name setter.</li>
+  Nice. We get the attribute value. But we can make this more simple…  <h3>Using properties, getters and setters</h3>
+  We can make life easier by creating getters and setters for firstname.  <ol start="1">
+<li>Create the ‘private’ variable _firstname</li>
+<li>Create a getter for firstname which returns the private var</li>
 </ol>
-  <pre><code language="js" class="js">get name() {
-    return this._name;
+  <pre><code language="js" class="js">get firstname() {
+    return this._firstname;
+}
+</code></pre>
+   <aside class="special">Private does not exists in javascript. By prepending props with an underscore you should know to not use it as a part of the component’s API.</aside>
+   <ol start="1">
+<li>Create a setter in which we check if _firstname has changed and if so, update the greeting</li>
+<li>Make sure that the initial assignment of this.firstname happens after you created the shadow root</li>
+<li>Remove the lines where we set the greeting except for in the firstname setter.</li>
+</ol>
+  <pre><code language="js" class="js">set firstname(val) {
+    if (val === this._firstname) return;
+    if (val) {
+        this._firstname = val;
+        this.shadowRoot.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.firstname}`;
+    }
+}
+</code></pre>
+  Now, change the connectedCallback to: <code>this.firstname = this.getAttribute(&#39;firstname&#39;);</code>  <h3>Setting a default value</h3>
+  Remove the initial assignment in the constructor to this.firstname, and add an else statement to the firstname setter  <pre><code language="js" class="js">set firstname(val) {
+    if { ...
+    } else {
+        this.firstname = &#39;Default Bob&#39;;
+    }
 }
 
-set name(val) {
-    if (val === this._name) return;
-    if (val) {
-        this._name = val;
-        this.shadowRoot.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.name}`;
-    }
-}
 </code></pre>
-  Now, change the connectedCallback to: <code>this.name = this.getAttribute(&#39;name&#39;);</code>  <h3>Observing changed attributes</h3>
-  If you update your Custom Elements attribute ‘name’ via the console using <code>$(&#39;my-element&#39;).setAttribute(&#39;name&#39;, &#39;something&#39;);</code>, you will notice that the greeting won’t get updated. We need to observe our attribute in order to update the greeting.  <ol start="1">
-<li>Add a static get observedAttributes() which return an array with the element ‘name’</li>
+  <h3>Observing changed attributes</h3>
+  If you update your Custom Elements attribute ‘firstname’ via the console using <code>$(&#39;my-element&#39;).setAttribute(&#39;firstname&#39;, &#39;something&#39;);</code>, you will notice that the greeting won’t get updated. We need to observe our attribute in order to update the greeting.  <ol start="1">
+<li>Add a static get observedAttributes() which return an array with the element ‘firstname’</li>
 <li>In the attributeChangedCallback check if the value actually has changed</li>
-<li>Then use the name setter to update it to the new attribute value</li>
+<li>Then use the firstname setter to update it to the new attribute value</li>
 </ol>
   <pre><code language="js" class="js">
 static get observedAttributes() {
-    return [&#39;name&#39;];
+    return [&#39;firstname&#39;];
 }
 
 attributeChangedCallback(attrName, oldVal, newVal) {
@@ -262,10 +300,10 @@ attributeChangedCallback(attrName, oldVal, newVal) {
 
       </google-codelab-step>
     
-      <google-codelab-step label="Reflecting properties to attributes" duration="0">
-        <h3>Setting the attribute when properties change</h3>
-  Often we want the properties of Custom Elements to be reflected in the attributes. If you run <code>$(&#39;my-element&#39;).name = &#39;something&#39;;</code> you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.  <pre><code language="js" class="js">//Inside if(val) of set name()
-this.setAttribute(&#39;name&#39;, this._name);
+      <google-codelab-step label="Reflecting properties to attributes" duration="20">
+          <h3>Setting the attribute when properties change</h3>
+  Often we want the properties of Custom Elements to be reflected in the attributes. If you run <code>$(&#39;my-element&#39;).firstname = &#39;something&#39;;</code> you see that the attribute does not update. In the setter we can use setAttribute to reflect the property.  <pre><code language="js" class="js">//Inside if(val) of set firstname()
+this.setAttribute(&#39;firstname&#39;, this._firstname);
 </code></pre>
   Inspect this common pattern in which the getters and setters reflect and modify the boolean attribute ‘disabled’:  <pre><code language="js" class="js">
 static get observedAttributes() {
@@ -297,52 +335,130 @@ attributeChangedCallback() {
 
 </code></pre>
   Implement this pattern in your Custom Element. Tab through the page and see the difference the disabled attribute now makes.  <ol start="1">
-<li>Add disabled styles</li>
+<li>Let’s add some styles for our disabled Custom Element</li>
 </ol>
   <pre><code language="css" class="css">    :host([disabled]) {
         opacity: 0.2;
     }
 
 </code></pre>
-  
+  Run <code>$(&#39;my-element&#39;).disabled = true</code> in your console to see the difference.  
 
       </google-codelab-step>
     
-      <google-codelab-step label="Passing variables up (eventing)" duration="0">
-        <h3>Creating a parent element</h3>
-  Often you want to notify the parent elements that stuff changed. First we create this parent:  <ol start="1">
-<li>Create a new Custom Element named my-parent</li>
-<li>In the contstructor add a slot element</li>
-<li>Compose the HTML in the body so that my-element is rendered inside of my-parent</li>
+      <google-codelab-step label="Passing variables up (eventing)" duration="40">
+          <h3>Creating a parent element</h3>
+  Often you want to notify the parent elements that stuff changed. So let’s create a parent element:  <ol start="1">
+<li>Create a new class named MyParent which extends HTMLElement</li>
+<li>In the constructor add a slot element to the shadow root</li>
 </ol>
-  <pre><code>&lt;my-parent&gt;
-    &lt;my-element name=&#34;testtest&#34; id=&#34;my-element&#34;&gt;
+  <pre><code language="js" class="js">class MyParent extends HTMLElement {
+    constructor() {
+        super();
+
+        this.attachShadow({mode: &#39;open&#39;});
+        var slot = document.createElement(&#39;slot&#39;);
+        this.shadowRoot.appendChild(slot);
+    }
+}
+</code></pre>
+  Define it using customElements.define  <pre><code>    customElements.define(&#39;my-parent&#39;, MyParent);
+</code></pre>
+  Compose the HTML in the body so that my-element is rendered inside of my-parent  <pre><code>&lt;my-parent&gt;
+    &lt;my-element firstname=&#34;testtest&#34; id=&#34;my-element&#34;&gt;
         &lt;h1 slot=&#34;title&#34;&gt;Slots rule!&lt;/h1&gt;
     &lt;/my-element&gt;
 &lt;/my-parent&gt;
 </code></pre>
-  Now from my-element we want to dispatch an event when it has been click.  <ol start="1">
-<li>Add an event listener in the constructor</li>
-<li>Create a click handler which it’s turn dispatched an ‘click-count-changed’ CustomEvent</li>
-<li>The CustomEvent should have composed set to true to bubble through the shadow DOM</li>
-<li>In my-parent we listen for the ‘click-count-changed’ event.</li>
+  Everything still looks the same, right? We just render our my-element inside the default slot.  <h3>Setting the clickCount and adding the click listener</h3>
+  Now from my-element we want to dispatch an event with the clickCount to the parent when it has been clicked.  <ol start="1">
+<li>Set the initial count prop in the constructor</li>
+<li>Add an click listener in the constructor</li>
 </ol>
   <pre><code language="js" class="js">//Inside the constructor of my-element
+this.clickCount = 0;
 this.addEventListener(&#39;click&#39;, this.onClick);
 
-//Add the click handler to my-element
+</code></pre>
+  <h3>Adding the click handler</h3>
+  <ol start="1">
+<li>Create a click handler which increments the clickCount prop and dispatches an ‘click-count-changed’ CustomEvent containing the details (count)</li>
+<li>The CustomEvent should have composed set to true to bubble through the shadow DOM</li>
+</ol>
+  <pre><code>//Add the click handler to my-element
 onClick() {
     this.clickCount++;
     this.dispatchEvent(new CustomEvent(&#39;click-count-changed&#39;, {
         detail: {count: this.clickCount}, bubbles: true, composed: true
     }));
 }
-
-
-
-
 </code></pre>
- 
+  <h3>Catch the event in the parent</h3>
+  In my-parent we listen for the ‘click-count-changed’ event.  <ol start="1">
+<li>Add an event listener in the constructor for ‘click-count-changed’</li>
+<li>Handle the event by logging it</li>
+</ol>
+  <pre><code language="js" class="js">//Inside the constructor of parent-element
+this.addEventListener(&#39;click-count-changed&#39;, this.clickCountUpdated);
+
+//Add the handler for the click-count-changed event
+clickCountUpdated(e) {
+    console.log(e.detail.count);
+}
+</code></pre>
+  The constructed my-element is encapsulated and unaware of its surroundings. It sends out events to notify it’s parents that something has changed.  <h3>Display the count in my-parent</h3>
+  Add a span with an id to the shadowRoot in the constructor:  <pre><code language="js" class="js">let span = document.createElement(&#39;span&#39;);
+span.setAttribute(&#39;id&#39;, &#39;count&#39;);
+this.shadowRoot.appendChild(span);
+</code></pre>
+  In the click-count-changed handler add:  <pre><code language="js" class="js">this.shadowRoot.getElementById(&#39;count&#39;).textContent = e.detail.count;
+</code></pre>
+  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Finish" duration="0">
+          <h3>Thanks</h3>
+  I want to thank you for completing this Codelab! Please do not hesitate to provide feedback!  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="My conclusions" duration="0">
+        <h3>Pros</h3>
+  <ul>
+<li>Easy to use</li>
+<li>Not much code needed for simple components</li>
+<li>Shadow DOM is very powerful</li>
+</ul>
+  <h3>Cons</h3>
+  <ul>
+<li>We can only use strings as attributes, for object or other types we need transforming (that’s why Polymer asks for property types)</li>
+<li>For reflection, we need to transform camelCase property names to kebab-case attributes</li>
+<li>Templating is doable, but easier when we have templating (like {{var}}), could virtual DOM help us here?</li>
+<li>Bindings must set up manually</li>
+</ul>
+  <h3>Conclusion</h3>
+  <ul>
+<li>Web Components are pretty low-level</li>
+<li>No binding</li>
+<li>No templating</li>
+</ul>
+  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="BONUS: Browser support" duration="15">
+          <ol start="1">
+<li>Install FireFox</li>
+<li>Add the following to your HTML</li>
+</ol>
+  ```  
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="BONUS: Custom properties" duration="15">
+          <h3>Use vars to change stying of Custom Elements</h3>
+  We provide Custom Elements to our users, but what if they want different styling of these components? 
 
       </google-codelab-step>
     
