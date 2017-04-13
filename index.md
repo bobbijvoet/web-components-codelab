@@ -72,7 +72,7 @@ View the HTML file in your browser and see that the element renders.
 
 ### Use the selector
 
-Use `app-drawer:not(:defined)` to style your component before its definition.
+Use `my-element:not(:defined)` to style your component before its definition.
 
 ## Life cycle hooks part 1
 Duration: 0:15
