@@ -61,9 +61,15 @@ customElements.define(&#39;my-element&#39;, MyElement);
 
       </google-codelab-step>
     
+      <google-codelab-step label="Pre-style unregistered elements" duration="0">
+        <h3>Use the selector</h3>
+  Use <code>app-drawer:not(:defined)</code> to style your component before its definition.  
+
+      </google-codelab-step>
+    
       <google-codelab-step label="Life cycle hooks part 1" duration="15">
           There are 4 important life-cycle hooks for Custom Elements  <h3>1. Constructor</h3>
-  <pre><code>constructor() {
+  <pre><code language="js" class="js">constructor() {
     // An instance of the element is created.
     // Useful for initializing state, settings up event listeners, or creating shadow dom.
     super(); // always call super() first in the constructor.
@@ -71,7 +77,7 @@ customElements.define(&#39;my-element&#39;, MyElement);
 </code></pre>
    <aside class="warning">Always call super(); first!</aside>
    Add some intial state to the constructor for your Custom Element:  <code>this.firstname = &#39;Bob&#39;</code>  <h3>2. Connected</h3>
-  <pre><code>connectedCallback() {
+  <pre><code language="js" class="js">connectedCallback() {
     // Called every time the element is inserted into the DOM.
     // Useful for running setup code, such as fetching resources or rendering.
 }
@@ -79,17 +85,17 @@ customElements.define(&#39;my-element&#39;, MyElement);
 
 
 </code></pre>
-  Use the initial state and show it using a template literal. Add this to the connectedCallback:  <pre><code>
+  Use the initial state and show it using a template literal. Add this to the connectedCallback:  <pre><code language="js" class="js">
 this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.firstname}&lt;/p&gt;`;
 </code></pre>
   Now your component renders the initial that you provided.  <h3>3. Disconnected</h3>
-  <pre><code>disconnectedCallback() {
+  <pre><code language="js" class="js">disconnectedCallback() {
     // Called every time the element is removed from the DOM.
     // Useful for running clean up code (removing event listeners, etc.).
 }
 </code></pre>
   Log a message when the element is removed. Remove it by typing <code>$(&#39;my-element&#39;).remove()</code> in your console.  <h3>4. Attribute changed</h3>
-  <pre><code>attributeChangedCallback(attrName, oldVal, newVal) {
+  <pre><code language="js" class="js">attributeChangedCallback(attrName, oldVal, newVal) {
     // An attribute was added, removed, updated, or replaced.
     // Also called for initial values when an element is created by the parser, or upgraded.
 }
@@ -101,7 +107,7 @@ this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.firstname}&lt;/p&gt
     
       <google-codelab-step label="Using a template" duration="15">
           <h3>Adding a template</h3>
-  Create a <code>&lt;template&gt;</code> element just above the <code>&lt;script&gt;</code> tag:  <pre><code>&lt;template&gt;
+  Create a <code>&lt;template&gt;</code> element just above the <code>&lt;script&gt;</code> tag:  <pre><code language="js" class="js">&lt;template&gt;
     &lt;h1&gt;My template&lt;/h1&gt;
     &lt;p id=&#34;greeting&#34;&gt;&lt;/p&gt;
 &lt;/template&gt;
@@ -114,7 +120,7 @@ this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.firstname}&lt;/p&gt
 <li>Set the textContent of the greeting paragraph (by selecting it by id) to the template string</li>
 <li>Append the cloned node to your Custom Element</li>
 </ol>
-  <pre><code>connectedCallback() {
+  <pre><code language="js" class="js">connectedCallback() {
     let template = document.getElementById(&#39;my-template&#39;);
     let content = template.content.cloneNode(true); // Parameter is for deep cloning
     content.getElementById(&#39;greeting&#39;).textContent = `Hi, ${this.firstname}`;
@@ -136,7 +142,7 @@ this.innerHTML = `&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;${this.firstname}&lt;/p&gt
 
 </code></pre>
   Add a paragraph next to your Custom Element and see that the styles are applied there as well. Since we are not leveraging the shadow DOM the styles are applied globally.  <h3>Adding a shadow root</h3>
-  Now let’s add shadow DOM. So instead of attaching the template content directly as a child, we create a shadow root, and attach the template inside.  <pre><code>this.attachShadow({mode: &#39;open&#39;}); // Parameter is for deep cloning
+  Now let’s add shadow DOM. So instead of attaching the template content directly as a child, we create a shadow root, and attach the template inside.  <pre><code language="js" class="js">this.attachShadow({mode: &#39;open&#39;}); // Parameter is for deep cloning
 this.shadowRoot.appendChild(content);
 </code></pre>
   Notice that now only the paragraph in the shadow DOM has the styles applied.  
@@ -194,7 +200,7 @@ this.shadowRoot.appendChild(content);
     
       <google-codelab-step label="Using slots" duration="15">
           <h3>What are slots?</h3>
-  Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:  <pre><code>
+  Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:  <pre><code language="html" class="html">
 &lt;my-element&gt;
     hello
 &lt;/my-element&gt;
@@ -210,10 +216,10 @@ this.shadowRoot.appendChild(content);
   <h3>Fallback</h3>
   Put some text in the <code>&lt;slot&gt;</code>, notice that it’s overwritten. Now if we remove the Light DOM you’ll see the text of your slot is rendered.   <aside class="warning">For this fallback to work, make sure your Custom Element is completely empty.</aside>
    <h3>Named slots</h3>
-  Add a name to your slot:  <pre><code>&lt;slot name=&#34;title&#34;&gt;&lt;/slot&gt;
+  Add a name to your slot:  <pre><code language="html" class="html">&lt;slot name=&#34;title&#34;&gt;&lt;/slot&gt;
 
 </code></pre>
-  Render an header in the slot:  <pre><code>&lt;my-element&gt;
+  Render an header in the slot:  <pre><code language="html" class="html">&lt;my-element&gt;
     &lt;h1 slot=&#34;title&#34;&gt;Slots rule!&lt;/h1&gt;
 &lt;/my-element&gt;
 </code></pre>
@@ -362,9 +368,9 @@ attributeChangedCallback() {
     }
 }
 </code></pre>
-  Define it using customElements.define  <pre><code>    customElements.define(&#39;my-parent&#39;, MyParent);
+  Define it using customElements.define  <pre><code language="js" class="js">    customElements.define(&#39;my-parent&#39;, MyParent);
 </code></pre>
-  Compose the HTML in the body so that my-element is rendered inside of my-parent  <pre><code>&lt;my-parent&gt;
+  Compose the HTML in the body so that my-element is rendered inside of my-parent  <pre><code language="html" class="html">&lt;my-parent&gt;
     &lt;my-element firstname=&#34;testtest&#34; id=&#34;my-element&#34;&gt;
         &lt;h1 slot=&#34;title&#34;&gt;Slots rule!&lt;/h1&gt;
     &lt;/my-element&gt;
@@ -385,7 +391,7 @@ this.addEventListener(&#39;click&#39;, this.onClick);
 <li>Create a click handler which increments the clickCount prop and dispatches an ‘click-count-changed’ CustomEvent containing the details (count)</li>
 <li>The CustomEvent should have composed set to true to bubble through the shadow DOM</li>
 </ol>
-  <pre><code>//Add the click handler to my-element
+  <pre><code language="js" class="js">//Add the click handler to my-element
 onClick() {
     this.clickCount++;
     this.dispatchEvent(new CustomEvent(&#39;click-count-changed&#39;, {
@@ -419,12 +425,8 @@ this.shadowRoot.appendChild(span);
     
       <google-codelab-step label="Finish" duration="0">
           <h3>Thanks</h3>
-  I want to thank you for completing this Codelab! Please do not hesitate to provide feedback!  
-
-      </google-codelab-step>
-    
-      <google-codelab-step label="My conclusions" duration="0">
-        <h3>Pros</h3>
+  I want to thank you for completing this Codelab! Please do not hesitate to provide feedback!  <h3>Your conclusions?</h3>
+  Let’s discuss Web Components? What do you think of the spec?  <h3>Pros</h3>
   <ul>
 <li>Easy to use</li>
 <li>Not much code needed for simple components</li>
@@ -448,17 +450,14 @@ this.shadowRoot.appendChild(span);
       </google-codelab-step>
     
       <google-codelab-step label="BONUS: Browser support" duration="15">
-          <ol start="1">
-<li>Install FireFox</li>
-<li>Add the following to your HTML</li>
-</ol>
-  ```  
+          <h3>Supporting old browsers</h3>
+  Chrome is supporting all this, but what if you want to <a href="https://developers.google.com/web/fundamentals/getting-started/primers/shadowdom#support" target="_blank">support other browsers…</a>  
 
       </google-codelab-step>
     
       <google-codelab-step label="BONUS: Custom properties" duration="15">
           <h3>Use vars to change stying of Custom Elements</h3>
-  We provide Custom Elements to our users, but what if they want different styling of these components? 
+  We provide Custom Elements to our users, but what if they want <a href="https://developers.google.com/web/fundamentals/getting-started/primers/shadowdom#stylefromoutside" target="_blank">different styling of these components? </a> 
 
       </google-codelab-step>
     

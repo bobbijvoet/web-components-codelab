@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 
 <p>testing</p>
+<style>
 
+    my-element {
+        display: block;
+        width: 200px;
+        background: blue;
+    }
+    my-element:not(:defined) {
+        background: lightblue;
+
+    }
+</style>
 
 <my-parent>
     <my-element firstname="tetet" id="my-element">
@@ -11,6 +22,7 @@
 
 <template id="my-template">
     <style>
+
 
         :host {
             background: darkgray;
@@ -151,4 +163,6 @@
 
     customElements.define('my-element', MyElement);
     customElements.define('my-parent', MyParent);
+
+
 </script>

@@ -68,13 +68,19 @@ customElements.define('my-element', MyElement);
 
 View the HTML file in your browser and see that the element renders.
 
+## Pre-style unregistered elements
+
+### Use the selector
+
+Use `app-drawer:not(:defined)` to style your component before its definition.
+
 ## Life cycle hooks part 1
 Duration: 0:15
 
 There are 4 important life-cycle hooks for Custom Elements
 
 ### 1. Constructor
-```
+``` js
 constructor() {
     // An instance of the element is created.
     // Useful for initializing state, settings up event listeners, or creating shadow dom.
@@ -94,7 +100,7 @@ Add some intial state to the constructor for your Custom Element:
 `this.firstname = 'Bob'`
 
 ### 2. Connected
-```
+``` js
 connectedCallback() {
     // Called every time the element is inserted into the DOM.
     // Useful for running setup code, such as fetching resources or rendering.
@@ -107,7 +113,7 @@ connectedCallback() {
 
 Use the initial state and show it using a template literal. Add this to the connectedCallback:
 
-```
+``` js
 
 this.innerHTML = `<h1>Hello!</h1><p>${this.firstname}</p>`;
 ```
@@ -115,7 +121,7 @@ this.innerHTML = `<h1>Hello!</h1><p>${this.firstname}</p>`;
 Now your component renders the initial that you provided.
 
 ### 3. Disconnected
-```
+``` js
 disconnectedCallback() {
     // Called every time the element is removed from the DOM.
     // Useful for running clean up code (removing event listeners, etc.).
@@ -124,7 +130,7 @@ disconnectedCallback() {
 
 Log a message when the element is removed. Remove it by typing `$('my-element').remove()` in your console.
 ### 4. Attribute changed
-```
+``` js
 attributeChangedCallback(attrName, oldVal, newVal) {
     // An attribute was added, removed, updated, or replaced.
     // Also called for initial values when an element is created by the parser, or upgraded.
@@ -144,7 +150,7 @@ Duration: 0:15
 
 Create a `<template>` element just above the `<script>` tag:
 
-```
+``` js
 <template>
     <h1>My template</h1>
     <p id="greeting"></p>
@@ -160,7 +166,7 @@ We are going to use this template as the content for our Custom Element:
 4. Set the textContent of the greeting paragraph (by selecting it by id) to the template string
 5. Append the cloned node to your Custom Element
 
-```
+``` js
 connectedCallback() {
     let template = document.getElementById('my-template');
     let content = template.content.cloneNode(true); // Parameter is for deep cloning
@@ -195,7 +201,7 @@ Add a paragraph next to your Custom Element and see that the styles are applied 
 
 Now let's add shadow DOM. So instead of attaching the template content directly as a child, we create a shadow root, and attach the template inside.
 
-```
+``` js
 this.attachShadow({mode: 'open'}); // Parameter is for deep cloning
 this.shadowRoot.appendChild(content);
 ```
@@ -280,7 +286,7 @@ Duration: 0:15
 ### What are slots?
 Slots are placeholders inside your component that users can fill with their own markup. The markup that the users adds we call light DOM. Add some light DOM:
 
-```
+``` html
 
 <my-element>
     hello
@@ -309,13 +315,13 @@ Negative
 ### Named slots
 
 Add a name to your slot:
-```
+``` html
 <slot name="title"></slot>
 
 ```
 
 Render an header in the slot:
-```
+``` html
 <my-element>
     <h1 slot="title">Slots rule!</h1>
 </my-element>
@@ -528,13 +534,13 @@ class MyParent extends HTMLElement {
 
 Define it using customElements.define
 
-```
+``` js
     customElements.define('my-parent', MyParent);
 ```
 
 Compose the HTML in the body so that my-element is rendered inside of my-parent
 
-```
+``` html
 <my-parent>
     <my-element firstname="testtest" id="my-element">
         <h1 slot="title">Slots rule!</h1>
@@ -563,7 +569,7 @@ this.addEventListener('click', this.onClick);
 2. The CustomEvent should have composed set to true to bubble through the shadow DOM
 
 
-```
+``` js
 //Add the click handler to my-element
 onClick() {
     this.clickCount++;
@@ -614,8 +620,9 @@ Duration: 0:00
 ### Thanks
 I want to thank you for completing this Codelab! Please do not hesitate to provide feedback!
 
+### Your conclusions?
 
-## My conclusions
+Let's discuss Web Components? What do you think of the spec?
 
 ### Pros
 
@@ -636,16 +643,17 @@ I want to thank you for completing this Codelab! Please do not hesitate to provi
 
 ## BONUS: Browser support
 Duration: 0:15
-Chrome is supporting all this, but what if you want to support other browsers...
 
-1. Install FireFox
-2. Add the following to your HTML
+### Supporting old browsers
 
-```
+Chrome is supporting all this, but what if you want to [support other browsers...](https://developers.google.com/web/fundamentals/getting-started/primers/shadowdom#support)
+
 
 
 ## BONUS: Custom properties
 Duration: 0:15
+
 ### Use vars to change stying of Custom Elements
 
-We provide Custom Elements to our users, but what if they want different styling of these components?
+We provide Custom Elements to our users, but what if they want [different styling of these components?
+](https://developers.google.com/web/fundamentals/getting-started/primers/shadowdom#stylefromoutside)
