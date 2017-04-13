@@ -74,6 +74,25 @@ View the HTML file in your browser and see that the element renders.
 
 Use `my-element:not(:defined)` to style your component before its definition.
 
+``` css
+
+my-element {
+    display: block;
+    width: 200px;
+    height: 200px;
+}
+my-element:not(:defined) {
+    background:red;
+
+}
+
+my-element:defined {
+    background:blue;
+
+}
+
+```
+
 ## Life cycle hooks part 1
 Duration: 0:15
 

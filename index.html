@@ -63,7 +63,24 @@ customElements.define(&#39;my-element&#39;, MyElement);
     
       <google-codelab-step label="Pre-style unregistered elements" duration="0">
         <h3>Use the selector</h3>
-  Use <code>my-element:not(:defined)</code> to style your component before its definition.  
+  Use <code>my-element:not(:defined)</code> to style your component before its definition.  <pre><code language="css" class="css">
+my-element {
+    display: block;
+    width: 200px;
+    height: 200px;
+}
+my-element:not(:defined) {
+    background:red;
+
+}
+
+my-element:defined {
+    background:blue;
+
+}
+
+</code></pre>
+  
 
       </google-codelab-step>
     
