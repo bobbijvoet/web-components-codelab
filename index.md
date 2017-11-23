@@ -93,6 +93,8 @@ my-element:defined {
 
 ```
 
+Once you proved this, remove the style tag.
+
 ## Life cycle hooks part 1
 Duration: 0:15
 

@@ -19,6 +19,9 @@
     "tests"
   ],
   "dependencies": {
-    "codelab-components": "googlecodelabs/codelab-components#^2.0.2"
+    "codelab-components": "googlecodelabs/codelab-components#^2.0.2",
+    "custom-elements": "webcomponents/custom-elements#^1.0.0-rc.3",
+    "shadydom": "webcomponents/shadydom#^1.0.0-rc.2",
+    "shadycss": "webcomponents/shadycss#^1.0.0-rc.5"
   }
 }
